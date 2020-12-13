@@ -41,7 +41,7 @@ jobs:
       run: tar -xf toolchain.tar
 
     - name: Compile
-      run: cd src/motor && make clean && CC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc make
+      run: cd src/motor && make clean && CROSSCC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc make
     
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v1
