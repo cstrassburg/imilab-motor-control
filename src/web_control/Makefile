@@ -1,10 +1,14 @@
 all: cross
 
 cross:
-	GOOS=linux GOARCH=arm go build -o web_control
+	test -d dist || mkdir dist
+	test -d dist/static || mkdir dist/static
+	GOOS=linux GOARCH=arm go build -o dist/web_control
+	cp static/* dist/static/
 
 test:
-	go build -o web_control
+	test -d test || mkdir test
+	go build -o test/web_control
 
 clean:
-	rm  web_control
+	rm -rf dist test
