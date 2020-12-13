@@ -29,9 +29,6 @@ jobs:
     - name: Update APT repositories
       run: sudo apt-get update
 
-    - name: Install libc ARM cross compiler
-      run: sudo apt-get -y install gcc-arm-linux-gnueabihf
-
     - name: Get uClibc toolchain
       uses: i3h/download-release-asset@v1
       with:
@@ -43,26 +40,14 @@ jobs:
     - name: Install uClibc ARM cross compiler
       run: tar -xf toolchain.tar
 
-    - name: Compile libc
-      run: cd src/motor && CC=arm-linux-gnueabihf-gcc make
-    
-    - name: Copy libc executable
-      run: mkdir -p bin/libc && cp src/motor/dist/motord bin/libc/
-
-    - name: Compile uClibc
+    - name: Compile
       run: cd src/motor && make clean && CC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc make
     
-    - name: Copy uClibc executable
-      run: mkdir -p bin/uclibc && cp src/motor/dist/motord bin/uclibc/
-
-    - name: Package binaries
-      run: cd bin && tar -cvf motor.tar *
-
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: motor
-        path: bin/motor.tar
+        name: motord
+        path: src/motor/dist/motord
 
     - name: Release (pre-release)
       if: env.isReleaseCandidate == 'true'
@@ -70,7 +55,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: true
-        artifacts: bin/motor.tar
+        artifacts: src/motor/dist/motord
         
     - name: Update latest-rc tag
       if: env.isReleaseCandidate == 'true'
@@ -81,14 +66,14 @@ jobs:
         allowUpdates: true
         replacesArtifacts: true
         prerelease: true
-        artifacts: bin/motor.tar
+        artifacts: src/motor/dist/motord
 
     - name: Release (final)
       if: env.isFinalRelease == 'true'
       uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: bin/
+        artifacts: src/motor/dist/
         
     - name: Update latest tag
       if: env.isFinalRelease == 'true'
@@ -98,4 +83,4 @@ jobs:
         tag: latest
         allowUpdates: true
         replacesArtifacts: true
-        artifacts: bin/motor.tar
+        artifacts: src/motor/dist/motord
