@@ -47,16 +47,16 @@ jobs:
       run: cd src/motor && CC=arm-linux-gnueabihf-gcc make
     
     - name: Copy libc executable
-      run: cd src/motor && mkdir -p bin/libc && cp dist/motord bin/libc/
+      run: mkdir -p bin/libc && cp src/motor/dist/motord bin/libc/
 
     - name: Compile uClibc
       run: cd src/motor && make clean && CC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc make
     
     - name: Copy uClibc executable
-      run: cd src/motor && mkdir -p bin/uclibc && cp dist/motord bin/uclibc/
+      run: mkdir -p bin/uclibc && cp src/motor/dist/motord bin/uclibc/
 
     - name: Package binaries
-      run: cd src/motor/bin && tar -cvf motor.tar *
+      run: cd bin && tar -cvf motor.tar *
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v1
