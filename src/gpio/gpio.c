@@ -8,11 +8,17 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <stdbool.h>
+// #include <gpiod.h>
 
 #define EVENT_FILE "event"       // file for controlling the motor (by writing to it)
 #define POSITION_FILE "position" // file to store the inicial motor position
 #define STATUS_FILE "status"     // file for status of motor, to know if max offset of direction
+
+#define FORWARD 3 // 1 in mjsxj02cm
+#define REVERSE 2 // 0 in mjsxj02cm
+#define PAN 0
+#define TILT 1
 
 #define PAN_REVERSE 0
 #define PAN_FORWARD 1
@@ -21,11 +27,13 @@
 
 #define H_MIN -260
 #define H_CENTER 0 //Center pos horizontal
-#define H_MAX 260 //Max steps horizontal
+#define H_MAX 260  //Max steps horizontal
+#define H_GPIO = 80;
 
-#define V_MIN-45
+#define V_MIN -45
 #define V_CENTER 0 //Center pos vertical
-#define V_MAX 45 //Max steps vertical
+#define V_MAX 45   //Max steps vertical
+#define V_GPIO = 16;
 
 int H_POSITION = 0;
 int V_POSITION = 0;
@@ -55,50 +63,6 @@ void miio_motor_move(int direction, int steps)
     motor_h_dist_set(steps);
     motor_h_move();
     motor_h_stop();
-}
-
-char **split(char string[], const char *sep)
-{
-    /*
-    get string pointer and sep , return array of splited string 
-    don't forget to free the return pointer 
-    */
-    char *token = strtok(string, sep);
-    char **argv = calloc(1, sizeof(char *));
-
-    int i = 0;
-    while (token != NULL)
-    {
-        argv = realloc(argv, sizeof(argv) + sizeof(char *));
-        argv[i] = calloc(strlen(token), sizeof(char));
-        strcpy(argv[i++], token);
-        token = strtok(NULL, sep);
-    }
-    return argv;
-}
-
-char *readFile(char *filename)
-{
-    /* 
-    get contents of file
-    don't forget to free the buffer
-    */
-    char *buffer = 0;
-    long length;
-    FILE *f = fopen(filename, "r");
-    if (f)
-    {
-        fseek(f, 0, SEEK_END);
-        length = ftell(f);
-        fseek(f, 0, SEEK_SET);
-        buffer = malloc(length);
-        if (buffer)
-        {
-            fread(buffer, 1, length, f);
-        }
-        fclose(f);
-    }
-    return buffer;
 }
 
 void file_event_service(char *pathname, void (*callback_function)())
@@ -319,10 +283,12 @@ void motor_calibrate()
 
     //calibrate horizontal axis first, right is 0. Move to center afterwards
     miio_motor_move(PAN_FORWARD, H_MAX + abs(H_MIN) + 10);
-    H_POSITION = H_MAX;
+    miio_motor_move(PAN_REVERSE, H_MAX);
+
     //calibrate vertical axis, down is 0. Move to center afterwards
     miio_motor_move(TILT_FORWARD, V_MAX + abs(V_MIN) + 4);
-    V_POSITION = V_MAX;
+    miio_motor_move(TILT_REVERSE, V_MAX);
+    reset_motor();
 }
 
 void restore_last_position()
@@ -341,9 +307,14 @@ void restore_last_position()
     else
     {
         printf("[DEBUG] No position saved, going to origin.\n");
-        motor_goto(H_CENTER, V_CENTER);
+        // motor_goto(hor, ver);
     }
     free(contents);
+}
+
+void report_gpio(int pin, int state)
+{
+    printf("[DEBUG] Pin %d changed to %d \n", pin, state);
 }
 
 void dl_load(void *handle)
@@ -375,11 +346,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     dl_load(handle);
-    motor_init();
-
-    motor_calibrate();
-    restore_last_position();
-    file_event_service(EVENT_FILE, callback_motor);
+    file_event_service("/sys/class/gpio/gpio" + H_GPIO + "/direction", callback_motor);
+    // printf("[DEBUG] Position: %s", motor_h_position_get());
 
     motor_exit();
     dlclose(handle);

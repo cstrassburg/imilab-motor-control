@@ -69,7 +69,7 @@ func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
 
-func miio_motor_move(motor string, direction string, steps string) {
+func miioMotorMove(motor string, direction string, steps string) {
 	f, err := os.Create(MOTORD_FOLDER + "/" + EVENT_FILE)
 	if err != nil {
 		fmt.Println(err)
@@ -86,10 +86,28 @@ func miio_motor_move(motor string, direction string, steps string) {
 		fmt.Println(err)
 		return
 	}
-
 }
 
-func read_position_status() int {
+func miioMotorGoto(hor string, ver string) {
+	f, err := os.Create(MOTORD_FOLDER + "/" + EVENT_FILE)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	_, err = f.WriteString("goto " + hor + " " + ver)
+	if err != nil {
+		fmt.Println(err)
+		f.Close()
+		return
+	}
+	err = f.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func readPositionStatus() int {
 	dat, err := ioutil.ReadFile(MOTORD_FOLDER + "/" + "status")
 	check(err)
 	s := string(dat[0])
@@ -103,7 +121,7 @@ func check(e error) {
 	}
 }
 
-func miio_led_control(led int, value int) {
+func miioLedControl(led int, value int) {
 	/*
 		echo 1 > /sys/class/gpio/gpio36/value
 		echo 0 > /sys/class/gpio/gpio36/value
@@ -111,8 +129,8 @@ func miio_led_control(led int, value int) {
 		echo 0 > /sys/class/gpio/gpio78/value
 	*/
 
-	var value_string = strconv.Itoa(value)
-	var data = []byte(value_string)
+	var valueString = strconv.Itoa(value)
+	var data = []byte(valueString)
 
 	if led == 1 {
 		err := ioutil.WriteFile(YELLOW_LED, data, 0644)
@@ -123,31 +141,31 @@ func miio_led_control(led int, value int) {
 	}
 }
 
-func led_control_route(w http.ResponseWriter, r *http.Request) {
+func ledControlRoute(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	var led_num = 0
+	var ledNum = 0
 	var color = params["color"]
 	var value = params["value"]
 
 	if "yellow" == color {
-		led_num = 1
+		ledNum = 1
 	}
 
 	if value == "on" {
-		miio_led_control(led_num, 1)
+		miioLedControl(ledNum, 1)
 	} else {
-		miio_led_control(led_num, 0)
+		miioLedControl(ledNum, 0)
 	}
 
 }
 
-func motor_move_route(w http.ResponseWriter, r *http.Request) {
+func motorMoveRoute(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var motor = params["motor"]
 	var direction = params["direction"]
 	var steps = params["steps"]
-	miio_motor_move(motor, direction, steps)
-	var status = read_position_status()
+	miioMotorMove(motor, direction, steps)
+	var status = readPositionStatus()
 	if status == 0 {
 		fmt.Fprintf(w, "ok")
 	} else {
@@ -155,7 +173,20 @@ func motor_move_route(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func get_local_ip() string {
+func motorGotoRoute(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	var hor = params["hor"]
+	var ver = params["ver"]
+	miioMotorGoto(hor, ver)
+	var status = readPositionStatus()
+	if status == 0 {
+		fmt.Fprintf(w, "ok")
+	} else {
+		fmt.Fprintf(w, "overflow")
+	}
+}
+
+func getLocalIP() string {
 	tt, err := net.Interfaces()
 	check(err)
 	for _, t := range tt {
@@ -176,18 +207,18 @@ func get_local_ip() string {
 	return ""
 }
 
-func print_usage() {
+func printUsage() {
 	programName := os.Args[0]
 	fmt.Println("Usage: ")
 	fmt.Printf("%v --motord_folder <path> --port <port>\n", programName)
 }
 
-func validate_args() {
+func validateArgs() {
 	argsWithoutProg := os.Args[1:]
 
 	for index, value := range argsWithoutProg {
 		if value == "--help" {
-			print_usage()
+			printUsage()
 			os.Exit(0)
 		} else if value == "--motord_folder" {
 			MOTORD_FOLDER = argsWithoutProg[index+1]
@@ -203,7 +234,7 @@ func validate_args() {
 
 func main() {
 
-	validate_args()
+	validateArgs()
 
 	if _, err := os.Stat(MOTORD_FOLDER + "/" + EVENT_FILE); os.IsNotExist(err) {
 		fmt.Printf("%v file not found! \n", EVENT_FILE)
@@ -212,13 +243,14 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/motor_move/{motor}/{direction}/{steps}", motor_move_route).Methods("GET")
-	router.HandleFunc("/led_control/{color}/{value}", led_control_route).Methods("GET")
+	router.HandleFunc("/motor_move/{motor}/{direction}/{steps}", motorMoveRoute).Methods("GET")
+	router.HandleFunc("/motor_goto/{hor}/{ver}", motorGotoRoute).Methods("GET")
+	router.HandleFunc("/led_control/{color}/{value}", ledControlRoute).Methods("GET")
 
 	spa := spaHandler{staticPath: "static", indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 
-	fmt.Printf("Server started at http://%s:%d \n", get_local_ip(), PORT)
+	fmt.Printf("Server started at http://%s:%d \n", getLocalIP(), PORT)
 	// var addr = "0.0.0.0:" + strconv.Itoa(PORT)
 	srv := &http.Server{
 		Handler: router,

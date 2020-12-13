@@ -78,8 +78,6 @@
             display: block;
         }
 
-
-
         .container {
             display: flex;
             justify-content: center;
@@ -108,6 +106,11 @@
             border: 10px solid white;
             border-radius: 2px;
         }
+
+        .container-goto {
+            display: flex;
+            height: 100%;
+        }
     </style>
 
 </head>
@@ -135,6 +138,7 @@
         <div class="div-motor-buttons" style="text-align:center;width:480px; height: 80px;">
             <button class="buttons-motor" id="btn-up" onclick="moveup()">UP</button><br><br>
             <button class="buttons-motor" id="btn-left" onclick="moveleft()">LEFT</button>
+            <button id="btn-center" onclick="resetPosition()">+</button>
             <button class="buttons-motor" id="btn-right" onclick="moveright()">RIGHT</button><br><br>
             <button class="buttons-motor" id="btn-down" onclick="movedown()">DOWN</button>
         </div>
@@ -160,6 +164,12 @@
                 Yellow
             </label><br>
 
+        </div>
+        <div class="container-goto">
+            <input type="range" onchange='gotoPosition();' min="-100" max="100" value="0" class="slider" id="slider_v"
+                style="vertical-align: middle; transform: rotate(-90deg);">
+            <input type="range" onchange='gotoPosition();' min="-100" max="100" value="0" class="slider" id="slider_h"
+                style="vertical-align: middle;">
         </div>
     </div>
     <script>
@@ -210,6 +220,18 @@
                     document.getElementById("btn-left").style.backgroundColor = "white";
                 }, 500);
             }
+        }
+
+        const resetPosition = function () {
+            document.getElementById('slider_h').value = 0;
+            document.getElementById('slider_v').value = 0;
+            gotoPosition();
+        };
+
+        const gotoPosition = function () {
+            const hor = document.getElementById("slider_h");
+            const ver = document.getElementById("slider_v");
+            fetch(`/motor_goto/${hor.value}/${ver.value}`)
         }
 
         const handleLED = function (led) {
