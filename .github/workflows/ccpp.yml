@@ -43,16 +43,19 @@ jobs:
       run: cd src/motor && make clean && make CROSSCC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
 
     - name: Create Release
+      if: env.isNightly == 'true'
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
+        tag_name: dev
+        release_name: dev
         draft: true
         prerelease: false
+
     - name: Upload Release Asset
+      if: env.isNightly == 'true'
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
       env:
