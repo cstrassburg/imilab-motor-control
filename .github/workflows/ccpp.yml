@@ -58,6 +58,7 @@ jobs:
         artifacts: src/motor/dist/motord
         commit: dev
         # draft: true
+        prerelease: true
         replacesArtifacts: true
         tag : dev
         token: ${{ secrets.GITHUB_TOKEN }}
