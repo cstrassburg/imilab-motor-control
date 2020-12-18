@@ -53,10 +53,10 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
-        commit: dev
+        draft: true
+        name: dev
         prerelease: true
         replacesArtifacts: true
-        tag : dev
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: src/motor/dist/motord
 
