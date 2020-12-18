@@ -7,7 +7,7 @@ on:
     tags:
       - '*'
 env:
-  isNightly: ${{ contains(github.ref, 'dev') }}
+  isNightly: ${{ contains(github.ref, 'branches') && contains(github.ref, 'dev') }}
   isReleaseCandidate: ${{ contains(github.ref, 'tags') && contains(github.ref, '-rc') }}
   isFinalRelease: ${{ contains(github.ref, 'tags') && contains(github.ref, '-release') }}
 
@@ -50,16 +50,16 @@ jobs:
         name: motord
         path: src/motor/dist/motord
 
-    - name: Update dev tag
-      if: env.isNightly == 'true'
-      uses: ncipollo/release-action@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag : dev
-        allowUpdates: true
-        replacesArtifacts: true
-        prerelease: true
-        artifacts: src/motor/dist/motord
+    # - name: Update dev tag
+    #   if: env.isNightly == 'true'
+    #   uses: ncipollo/release-action@v1
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     tag : dev
+    #     allowUpdates: true
+    #     replacesArtifacts: true
+    #     prerelease: true
+    #     artifacts: src/motor/dist/motord
 
     # - name: Release (pre-release)
     #   if: env.isReleaseCandidate == 'true'
