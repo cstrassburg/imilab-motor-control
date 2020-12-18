@@ -7,7 +7,7 @@ on:
     tags:
       - '*'
 env:
-  isNightly: ${{ contains(github.ref, 'branches') && contains(github.ref, 'dev') }}
+  isNightly: ${{ contains(github.ref, 'dev') }}
   isReleaseCandidate: ${{ contains(github.ref, 'tags') && contains(github.ref, '-rc') }}
   isFinalRelease: ${{ contains(github.ref, 'tags') && contains(github.ref, '-release') }}
 
