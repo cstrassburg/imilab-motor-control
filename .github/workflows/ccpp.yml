@@ -50,8 +50,7 @@ jobs:
       with:
         tag_name: rc
         release_name: rc
-        draft: true
-        prerelease: false
+        prerelease: true
 
     - name: Upload Release Asset
       id: upload-release-asset 
