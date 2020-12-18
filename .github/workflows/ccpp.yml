@@ -9,8 +9,7 @@ on:
 
 env:
   isNightly: ${{ contains(github.ref, 'dev') }}
-  isReleaseCandidate: ${{ contains(github.ref, 'tags') && contains(github.ref, 'rc-') }}
-  isFinalRelease: ${{ contains(github.ref, 'tags') && contains(github.ref, 'release-') }}
+  isFinalRelease: ${{ contains(github.ref, 'master') }}
 
 jobs:
   build:
@@ -42,67 +41,41 @@ jobs:
     - name: Compile
       run: cd src/motor && make clean && make CROSSCC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
 
-    - name: Create Release
+    - name: Create Release Candidate
       if: env.isNightly == 'true'
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: dev
-        release_name: dev
+        tag_name: rc
+        release_name: rc
+        draft: true
+        prerelease: false
+
+    - name: Create Release
+      if: env.isFinalRelease == 'true'
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: rc
+        release_name: rc
         draft: true
         prerelease: false
 
     - name: Upload Release Asset
-      if: env.isNightly == 'true'
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./src/motor/dist/motord
         asset_name: motord
         asset_content_type: application/zip
       
-    # - name: Upload Build Artifacts
-    #   uses: actions/upload-artifact@v1
-    #   with:
-    #     name: motord
-    #     path: src/motor/dist/motord
-
-    # - name: Update dev tag
-    #   if: env.isNightly == 'true'
-    #   uses: ncipollo/release-action@v1
-    #   with:
-    #     allowUpdates: true
-    #     name: dev
-    #     prerelease: true
-    #     replacesArtifacts: true
-    #     tag: dev
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     artifacts: src/motor/dist/motord
-
-    # - name: Release (pre-release)
-    #   if: env.isReleaseCandidate == 'true'
-    #   uses: ncipollo/release-action@v1
-    #   with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     prerelease: true
-    #     artifacts: src/motor/dist/motord
-        
-    - name: Update latest-rc tag
-      if: env.isReleaseCandidate == 'true'
-      uses: ncipollo/release-action@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag: latest-rc
-        allowUpdates: true
-        replacesArtifacts: true
-        prerelease: true
-        artifacts: src/motor/dist/motord
-
     # - name: Release (final)
     #   if: env.isFinalRelease == 'true'
     #   uses: ncipollo/release-action@v1
@@ -110,12 +83,12 @@ jobs:
     #     token: ${{ secrets.GITHUB_TOKEN }}
     #     artifacts: src/motor/dist/
         
-    - name: Update latest tag
-      if: env.isFinalRelease == 'true'
-      uses: ncipollo/release-action@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag: latest
-        allowUpdates: true
-        replacesArtifacts: true
-        artifacts: src/motor/dist/motord
+    # - name: Update latest tag
+    #   if: env.isFinalRelease == 'true'
+    #   uses: ncipollo/release-action@v1
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     tag: latest
+    #     allowUpdates: true
+    #     replacesArtifacts: true
+    #     artifacts: src/motor/dist/motord
