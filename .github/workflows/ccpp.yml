@@ -52,8 +52,9 @@ jobs:
       if: env.isNightly == 'true'
       uses: ncipollo/release-action@v1
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: true
+        tag : dev
+        token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: src/motor/dist/motord
 
     - name: Update dev tag
@@ -61,12 +62,12 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
-        artifacts: src/motor/dist/motord
         commit: dev
         prerelease: true
         replacesArtifacts: true
         tag : dev
         token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: src/motor/dist/motord
 
     # - name: Release (pre-release)
     #   if: env.isReleaseCandidate == 'true'
