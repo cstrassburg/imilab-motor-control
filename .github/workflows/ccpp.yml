@@ -48,15 +48,6 @@ jobs:
         name: motord
         path: src/motor/dist/motord
 
-    - name: Release (dev)
-      if: env.isNightly == 'true'
-      uses: ncipollo/release-action@v1
-      with:
-        prerelease: true
-        tag : dev
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: src/motor/dist/motord
-
     - name: Update dev tag
       if: env.isNightly == 'true'
       uses: ncipollo/release-action@v1
