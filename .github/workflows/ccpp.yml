@@ -42,11 +42,19 @@ jobs:
     - name: Compile
       run: cd src/motor && make clean && make CROSSCC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
     
-    # - name: Upload Build Artifacts
-    #   uses: actions/upload-artifact@v1
-    #   with:
-    #     name: motord
-    #     path: src/motor/dist/motord
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: motord
+        path: src/motor/dist/motord
+
+    - name: Release (dev)
+      if: env.isNightly == 'true'
+      uses: ncipollo/release-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        prerelease: true
+        artifacts: src/motor/dist/motord
 
     - name: Update dev tag
       if: env.isNightly == 'true'
