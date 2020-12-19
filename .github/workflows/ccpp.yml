@@ -39,15 +39,25 @@ jobs:
     - name: Compile
       run: make clean && make CROSSCC=output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
 
-    - name: Release
+    - name: Release Candidate
       uses: marvinpinto/action-automatic-releases@latest
       if: env.isNightly == 'true'
       with:
         automatic_release_tag: latest-rc
         files: dist/motord
-        prerelease: false
+        prerelease: true
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         title: latest-rc
+
+    - name: Release
+      uses: marvinpinto/action-automatic-releases@latest
+      if: env.isFinalRelease == 'true'
+      with:
+        automatic_release_tag: latest-rc
+        files: dist/motord
+        prerelease: false
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        title: stable
 
     # - name: Create Release Candidate
     #   id: create_release_candidate
