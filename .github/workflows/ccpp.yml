@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - '*'
-    # tags:
-    #   - '*'
 
 env:
   isNightly: ${{ contains(github.ref, 'dev') }}
@@ -74,7 +72,6 @@ jobs:
         asset_name: motord
         asset_content_type: application/zip
       
-
     - name: Upload Release Asset
       if: env.isFinalRelease == 'true'
       uses: actions/upload-release-asset@v1
