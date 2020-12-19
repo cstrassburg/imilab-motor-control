@@ -39,16 +39,16 @@ jobs:
     - name: Compile
       run: make clean && make CROSSCC=output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
 
-    - uses: ncipollo/release-action@v1
+    - name: Release
+      uses: softprops/action-gh-release@v1
       if: env.isNightly == 'true'
       with:
-        allowUpdates: true
-        artifacts: ./dist/motord
         name: latest-rc
+        tag_name: latest-rc
+        files: dist/motord
         prerelease: true
-        replacesArtifacts: true
-        tag: latest-rc
-        token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # - name: Create Release Candidate
     #   id: create_release_candidate
