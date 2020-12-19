@@ -43,8 +43,7 @@ jobs:
       if: env.isNightly == 'true'
       with:
         allowUpdates: true
-        artifact: ./dist/motord
-        commit: dev
+        artifacts: ./dist/motord
         name: latest-rc
         prerelease: true
         replacesArtifacts: true
