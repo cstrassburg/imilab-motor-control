@@ -39,55 +39,51 @@ jobs:
       run: tar -xf toolchain.tar
 
     - name: Compile
-      run: cd src/motor && make clean && make CROSSCC=../../output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
+      run: make clean && make CROSSCC=output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
 
     - name: Create Release Candidate
       if: env.isNightly == 'true'
+      id: create_release_candidate
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: latest-rc
+        release_name: latest-rc
+        prerelease: true
+
+    - name: Create Release
+      if: env.isFinalRelease == 'true'
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: rc
-        release_name: rc
+        tag_name: latest
+        release_name: latest
         prerelease: true
 
     - name: Upload Release Asset
       id: upload-release-asset 
+      if: env.isNightly == 'true'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
+        asset_path: ./dist/motord
+        asset_name: motord
+        asset_content_type: application/zip
+      
+
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      if: env.isFinalRelease == 'true'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./src/motor/dist/motord
+        asset_path: ./dist/motord
         asset_name: motord
-        asset_content_type: application/zip
-      
-    # - name: Create Release
-    #   if: env.isFinalRelease == 'true'
-    #   id: create_release
-    #   uses: actions/create-release@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     tag_name: rc
-    #     release_name: rc
-    #     draft: true
-    #     prerelease: false
-
-    # - name: Release (final)
-    #   if: env.isFinalRelease == 'true'
-    #   uses: ncipollo/release-action@v1
-    #   with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     artifacts: src/motor/dist/
-        
-    # - name: Update latest tag
-    #   if: env.isFinalRelease == 'true'
-    #   uses: ncipollo/release-action@v1
-    #   with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     tag: latest
-    #     allowUpdates: true
-    #     replacesArtifacts: true
-    #     artifacts: src/motor/dist/motord
+        asset_content_type: application/zip   
