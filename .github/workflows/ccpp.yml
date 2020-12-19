@@ -39,48 +39,37 @@ jobs:
     - name: Compile
       run: make clean && make CROSSCC=output/host/bin/arm-buildroot-linux-uclibcgnueabihf-gcc
 
-    - name: Create Release Candidate
+    - uses: ncipollo/release-action@v1
       if: env.isNightly == 'true'
-      id: create_release_candidate
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: latest-rc
-        release_name: latest-rc
-        commitish: dev
+        allowUpdates: true
+        artifact: ./dist/motord
+        commit: dev
+        name: latest-rc
         prerelease: true
+        replacesArtifacts: true
+        tag: latest-rc
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create Release
-      if: env.isFinalRelease == 'true'
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: latest
-        release_name: latest
-        commitish: master
-        prerelease: false
+    # - name: Create Release Candidate
+    #   id: create_release_candidate
+    #   uses: actions/create-release@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     tag_name: latest-rc
+    #     release_name: latest-rc
+    #     commitish: dev
+    #     prerelease: true
 
-    - name: Upload Release Asset
-      if: env.isNightly == 'true'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
-        asset_path: ./dist/motord
-        asset_name: motord
-        asset_content_type: application/zip
-      
-    - name: Upload Release Asset
-      if: env.isFinalRelease == 'true'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/motord
-        asset_name: motord
-        asset_content_type: application/zip   
+    # - name: Upload Release Asset
+    #   if: env.isNightly == 'true'
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
+    #     asset_path: ./dist/motord
+    #     asset_name: motord
+    #     asset_content_type: application/zip
+    
