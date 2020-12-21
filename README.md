@@ -1,4 +1,9 @@
-# xiaomi-1080-360-motor-control
+## Build Status
+Latest | Stable
+--- | ---
+![C/C++ CI](https://github.com/cmiguelcabral/mjsxj05cm-motor-control/workflows/C/C++%20CI/badge.svg?tag=latest-rc) | ![C/C++ CI](https://github.com/cmiguelcabral/mjsxj05cm-motor-control/workflows/C/C++%20CI/badge.svg?branch=master)
+
+# Mi Camera Motor Control (MJSXJ05CM)
 
 Provides a way controlling the motor directly on the [MJSXJ02CM camera](https://www.mi.com/global/camera-360).
 
