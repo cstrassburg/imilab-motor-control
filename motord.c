@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-#define EVENT_FILE "event"       // file for controlling the motor (by writing to it)
-#define POSITION_FILE "position" // file to store the inicial motor position
-#define STATUS_FILE "status"     // file for status of motor, to know if max offset of direction
+#define EVENT_FILE_DEF "/run/motor_event"       // file for controlling the motor (by writing to it)
+#define POSITION_FILE_DEF "/run/motor_position" // file to store the inicial motor position
+#define STATUS_FILE_DEF "/run/motor_status"     // file for status of motor, to know if max offset of direction
 
 #define PAN_REVERSE 0
 #define PAN_FORWARD 1
@@ -29,6 +29,9 @@
 
 int H_POSITION = 0;
 int V_POSITION = 0;
+char* EVENT_FILE = EVENT_FILE_DEF;
+char* POSITION_FILE = POSITION_FILE_DEF;
+char* STATUS_FILE = STATUS_FILE_DEF;
 
 void (*motor_init)();
 void (*motor_exit)();
@@ -374,6 +377,17 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: %s\n", dlerror());
         return EXIT_FAILURE;
     }
+    if ( argc != 4 )
+    {
+        fprintf(stdout, "usage:\n");
+        fprintf(stdout, "motord <EVENT file> <POSITION file> <STATUS file>\n");
+        
+        return EXIT_FAILURE;
+    }
+    EVENT_FILE = argv[1];
+    POSITION_FILE = argv[2];
+    STATUS_FILE = argv[3]; 
+
     dl_load(handle);
     motor_init();
 
